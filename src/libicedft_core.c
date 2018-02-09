@@ -3,7 +3,7 @@
 #include "libicedft_api.h"
 
 
-
+#define EXE context->executer_api
 
 /* 
  * REG-to-VCPU map;
@@ -68,7 +68,7 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 
 
     /* use XED to decode the instruction and extract its opcode */
-	xed_iclass_enum_t ins_indx = (xed_iclass_enum_t)context->executer_api->INS_Opcode(ins, context);
+	xed_iclass_enum_t ins_indx = (xed_iclass_enum_t)EXE->INS_Opcode(ins, context);
 
 	/* sanity check */
 	if (unlikely(ins_indx <= XED_ICLASS_INVALID || 
@@ -104,18 +104,18 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 			 * (i.e., t[dst] |= t[src])
 			 */
 			/* 2nd operand is immediate; do nothing */
-			if (context->executer_api->INS_OperandIsImmediate(ins, context, 1))
+			if (EXE->INS_OperandIsImmediate(ins, context, 1))
 				break;
 
 
 			/* both operands are registers */
-			if (context->executer_api->INS_MemoryOperandCount(ins, context) == 0) {
+			if (EXE->INS_MemoryOperandCount(ins, context) == 0) {
 				/* extract the operands */
-				reg_dst = context->executer_api->INS_OperandReg(ins, context, 0);
-				reg_src = context->executer_api->INS_OperandReg(ins, context, 1);
+				reg_dst = EXE->INS_OperandReg(ins, context, 0);
+				reg_src = EXE->INS_OperandReg(ins, context, 1);
 
 				/* 32-bit operands */
-				if(context->executer_api->REG_is_gr32(ins, context, reg_dst)){
+				if(EXE->REG_is_gr32(ins, context, reg_dst)){
 					/* check for x86 clear register idiom */
 					switch(ins_indx){
 						/* xor, sub, sbb */
@@ -126,16 +126,30 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 							if (reg_dst == reg_src) 
 							{
 								/* clear */
-								context->executer_api->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE, r_clrl, 1,  REG32_INDX( ins, context ,reg_dst) );
-
+								EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE, 
+								r_clrl, 
+								1,  REG32_INDX( ins, context ,reg_dst) );
+								break;
 
 							}
-
+						/* default behavior */
+						default:
+							/* 
+							 * propagate the tag
+							 * markings accordingly
+							 */
+							EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE, 
+							r_clrl, 
+							2, REG32_INDX(ins, context ,reg_dst) , REG32_INDX( ins, context ,reg_src) );
 
 
 					}
 
 
+				}
+				/* 16-bit operands */
+				else if(EXE->REG_is_gr16(ins, context, reg_dst)){
+					
 				}
 
 

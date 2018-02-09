@@ -46,6 +46,7 @@ typedef struct idft_executer_api
   f_f_t INS_InsertCall;
 
   f_1_t REG_is_gr32;
+  f_1_t REG_is_gr16;
 
   f_0_t REG_eax;
 
