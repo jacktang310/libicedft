@@ -34,7 +34,7 @@
 
 #include <stdint.h>
 
-#define ADDRINT uint32_t
+
 
 #define GPR_NUM		8			/* general purpose registers */
 
@@ -125,8 +125,17 @@ typedef struct {
 
 
 /* libdft API */
-int	libicedft_init(ADDRINT version_mask = 0);
+int	libicedft_init(idft_executer_api_t* executer_api ,  idft_context_t ** pcontext);
 void libicedft_die(void);
+
+
+/* REG API */
+uint32_t REG32_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
+uint32_tREG16_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
+
+
+
+
 
 
 
