@@ -87,4 +87,56 @@ libdft_die(idft_context_t * context)
 }
 
 
+  //Executer reg to vcpu reg map
+  //param 1: pointer to a instruction , which can be NULL
+  //param 2: idft_context_t context
+  //param 3: Executer reg 
+  //return: the reg index in vcpu (see vcpu_ctx_t comments) 
+uint32_t
+REG32_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg)
+{
+
+	uint32_t indx ;	
+	
+	indx =  (uint32_t) context->executer_api->REG32_INDX(NULL , context, reg);
+	
+	/* return the index */
+	return indx;	
+}
+
+
+
+
+  //Executer 16bit reg to vcpu reg map
+  //param 1: pointer to a instruction , which can be NULL
+  //param 2: idft_context_t context
+  //param 3: Executer reg 
+  //return: the reg index in vcpu (see vcpu_ctx_t comments) 
+uint32_t
+REG16_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg)
+{
+	uint32_t indx ;	
+
+	indx = (uint32_t) context->executer_api->REG16_INDX(NULL , context, reg);
+
+	return indx;
+}
+
+  //Executer 8bit reg to vcpu reg map
+  //param 1: pointer to a instruction , which can be NULL
+  //param 2: idft_context_t context
+  //param 3: Executer reg 
+  //return: the reg index in vcpu (see vcpu_ctx_t comments) 
+uint32_t
+REG8_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg)
+{
+
+	uint32_t indx ;	
+
+	indx = (uint32_t) context->executer_api->REG8_INDX(NULL , context, reg);
+
+	return indx; 
+}
+
+
 
