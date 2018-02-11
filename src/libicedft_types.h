@@ -135,6 +135,14 @@ typedef struct idft_executer_api
   //return: 0： no , 1:yes   
   f_1_t REG_is_gr16;
 
+
+  //check the register is 8 bit 
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context
+  //param 3: the executer reg id   
+  //return: 0： no , 1:yes  
+  f_1_t REG_is_gr8;
+
   //check the register is upper 8 register
   //param 1: pointer to a instruction
   //param 2: idft_context_t context
