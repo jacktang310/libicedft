@@ -22,6 +22,18 @@ typedef enum{
 }idft_point_t;
 
 
+typedef enum{
+  IARG_ADDRINT,  //Type: ADDRINT. Constant value (additional arg required).
+  IARG_UINT32,  //Type: UINT32. Constant (additional integer arg required).
+  IARG_UINT64,  //Type: UINT64. Constant (additional UINT64 arg required).
+  IARG_MEMORYREAD_EA, //Type: ADDRINT. Effective address of a memory read, only valid if INS_IsMemoryRead is true and at IPOINT_BEFORE.
+  IARG_MEMORYWRITE_EA,  //Type: ADDRINT. Effective address of a memory write, only valid at IPOINT_BEFORE. 
+  IARG_THREAD_CONTEXT, // thread_ctx_t pointer
+  IARG_LAST
+
+}idft_arg_type_t;
+
+
 typedef struct idft_ins
 {
 
@@ -37,7 +49,9 @@ typedef struct idft_ins
 typedef uint32_t (*f_0_t)(idft_ins_t*, void * );
 typedef idft_reg_t (*f_1_t)(idft_ins_t*, void *, idft_reg_t );
 
-typedef uint32_t (*f_f_t)(idft_ins_t*, void *,  idft_reg_t , void* func, uint32_t  arg_count, ... );
+typedef char* (*f_0_r_s_t)(idft_ins_t*, void * );
+
+typedef uint32_t (*f_f_t)(idft_ins_t*, void *,  idft_reg_t action, void* func,  uint32_t  arg_count, ... );
 
 
 
@@ -57,6 +71,20 @@ typedef struct idft_executer_api
   //return: 0: no   1: yes
   f_1_t INS_OperandIsImmediate;
 
+  //check the instucion 's one operand is memory reference
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context
+  //param 3: which operand  (from 0)
+  //return: 0: no   1: yes
+  f_1_t INS_OperandIsMemory;
+
+  //check the instucion 's one operand is register reference
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context
+  //param 3: which operand  (from 0)
+  //return: 0: no   1: yes
+  f_1_t INS_OperandIsReg;
+
   //get the instruction's memory reference operand count
   //param 1: pointer to a instruction
   //param 2: idft_context_t context  
@@ -70,14 +98,28 @@ typedef struct idft_executer_api
   //return: the executer reg id
   f_1_t INS_OperandReg;
 
+  //get the instruction's one reg width
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context  
+  //param 3: which operand (from 0)
+  //return： the operand 's width
+  f_1_t INS_OperandWidth;
+
   //add a call 
   //param 1: pointer to a instruction
   //param 2: idft_context_t context  
   //param 3: instruction before or after
   //param 4: dft 's call back
-  //param 5: call back 's parameter count
-  //param 6: ...  (list each paramenter, every parameter's type is idft_reg_t )
+  //param 5: following variable argument list count
+  //param 6: ...  
   f_f_t INS_InsertCall;
+
+
+  //get the instruction's disassemble string
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context 
+  f_0_r_s_t INS_Disassemble;
+
 
   //check the regsiter is 32 bit 
   //param 1: pointer to a instruction
@@ -93,12 +135,27 @@ typedef struct idft_executer_api
   //return: 0： no , 1:yes   
   f_1_t REG_is_gr16;
 
-  //check the register is upper register
+  //check the register is upper 8 register
   //param 1: pointer to a instruction
   //param 2: idft_context_t context
   //param 3: the executer reg id   
   //return: 0： no , 1:yes   
   f_1_t REG_is_Upper8;
+
+  //check the register is lower 8 register
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context
+  //param 3: the executer reg id   
+  //return: 0： no , 1:yes   
+  f_1_t REG_is_Lower8;
+
+  //check the register is segment register
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context
+  //param 3: the executer reg id   
+  //return: 0： no , 1:yes   
+  f_1_t REG_is_seg;
+
 
   //Executer 32bit reg to vcpu reg map
   //param 1: pointer to a instruction , which can is ignore
@@ -120,6 +177,12 @@ typedef struct idft_executer_api
   //param 3: Executer reg 
   //return: the reg index in vcpu (see vcpu_ctx_t comments) 
   f_1_t REG8_INDX;
+
+
+
+
+
+
 
 
 }idft_executer_api_t;

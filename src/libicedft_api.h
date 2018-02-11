@@ -33,6 +33,7 @@
 #define LIBDFT_API_H
 
 #include <stdint.h>
+#include "libicedft_types.h"
 
 
 
@@ -131,11 +132,8 @@ void libicedft_die(void);
 
 /* REG API */
 uint32_t REG32_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
-uint32_tREG16_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
-
-
-
-
+uint32_t REG16_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
+uint32_t REG8_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
 
 
 
