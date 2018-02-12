@@ -29,6 +29,7 @@ typedef enum{
   IARG_MEMORYREAD_EA, //Type: ADDRINT. Effective address of a memory read, only valid if INS_IsMemoryRead is true and at IPOINT_BEFORE.
   IARG_MEMORYWRITE_EA,  //Type: ADDRINT. Effective address of a memory write, only valid at IPOINT_BEFORE. 
   IARG_THREAD_CONTEXT, // thread_ctx_t pointer
+  IARG_REG_VALUE,
   IARG_LAST
 
 }idft_arg_type_t;
@@ -51,7 +52,7 @@ typedef idft_reg_t (*f_1_t)(idft_ins_t*, void *, idft_reg_t );
 
 typedef char* (*f_0_r_s_t)(idft_ins_t*, void * );
 
-typedef uint32_t (*f_f_t)(idft_ins_t*, void *,  idft_reg_t action, void* func,  uint32_t  arg_count, ... );
+typedef uint32_t (*f_f_t)(idft_ins_t*, void *,  uint32_t action, void* func,  uint32_t  arg_count, ... );
 
 
 
@@ -114,11 +115,53 @@ typedef struct idft_executer_api
   //param 6: ...  
   f_f_t INS_InsertCall;
 
+  //add a call which is called or not depent on condition: for handle CMOVZ
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context  
+  //param 3: instruction before or after
+  //param 4: dft 's call back
+  //param 5: following variable argument list count
+  //param 6: ...  
+  f_f_t INS_InsertPredicatedCall;
+
+
+  //Insert a call to funptr relative to an INS. If funptr returns a non-zero ADDRINT, then the immediately following "then" analysis call is executed.
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context  
+  //param 3: instruction before or after
+  //param 4: dft 's call back
+  //param 5: following variable argument list count
+  //param 6: ...  
+  f_f_t INS_InsertIfCall;
+
+
+  //insert a call to funptr relative to an INS. The function is called only if the immediately preceding "if" analysis call returns a non-zero value.
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context  
+  //param 3: instruction before or after
+  //param 4: dft 's call back
+  //param 5: following variable argument list count
+  //param 6: ...  
+  f_f_t INS_InsertThenCall;
 
   //get the instruction's disassemble string
   //param 1: pointer to a instruction
   //param 2: idft_context_t context 
   f_0_r_s_t INS_Disassemble;
+
+
+  //get the instruction's write memory size
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context 
+  f_0_t INS_MemoryWriteSize;
+
+
+  //true if this operand is implied by the opcode (e.g. the stack write in a push instruction)
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context 
+  //param 3: which operand (from 0)
+  //return: 0: no   1: yes
+  f_1_t INS_OperandIsImplicit;
 
 
   //check the regsiter is 32 bit 
@@ -186,12 +229,42 @@ typedef struct idft_executer_api
   //return: the reg index in vcpu (see vcpu_ctx_t comments) 
   f_1_t REG8_INDX;
 
+  //get executer AH reg id
+  //param 1: pointer to a instruction , which can is ignore
+  //param 2: idft_context_t context
+  //return: the executer AH reg id 
+  f_0_t REG_AH;
+
+  //get executer AL reg id
+  //param 1: pointer to a instruction , which can is ignore
+  //param 2: idft_context_t context
+  //return: the executer AL reg id 
+  f_0_t REG_AL;
+
+  //get executer AX reg id
+  //param 1: pointer to a instruction , which can is ignore
+  //param 2: idft_context_t context
+  //return: the executer AX reg id 
+  f_0_t REG_AX;
+
+  //get executer EAX reg id
+  //param 1: pointer to a instruction , which can is ignore
+  //param 2: idft_context_t context
+  //return: the executer EAX reg id 
+  f_0_t REG_EAX;
 
 
+  //get executer DX reg id
+  //param 1: pointer to a instruction , which can is ignore
+  //param 2: idft_context_t context
+  //return: the executer DX reg id 
+  f_0_t REG_DX;
 
-
-
-
+  //get executer EDX reg id
+  //param 1: pointer to a instruction , which can is ignore
+  //param 2: idft_context_t context
+  //return: the executer EDX reg id 
+  f_0_t REG_EDX;
 
 }idft_executer_api_t;
 
