@@ -30,6 +30,7 @@ typedef enum{
   IARG_MEMORYWRITE_EA,  //Type: ADDRINT. Effective address of a memory write, only valid at IPOINT_BEFORE. 
   IARG_THREAD_CONTEXT, // thread_ctx_t pointer
   IARG_REG_VALUE,
+  IARG_FIRST_REP_ITERATION,
   IARG_LAST
 
 }idft_arg_type_t;
@@ -143,6 +144,30 @@ typedef struct idft_executer_api
   //param 5: following variable argument list count
   //param 6: ...  
   f_f_t INS_InsertThenCall;
+	
+  // Insert a call to funptr relative to an INS. If funptr returns a non-zero ADDRINT and the instruction has a true predicate, then the immediately following "then" analysis call is executed. If the instruction is not predicated, then this function is identical to INS_InsertIfCall.
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context  
+  //param 3: instruction before or after
+  //param 4: dft 's call back
+  //param 5: following variable argument list count
+  //param 6: ...  
+  f_f_t INS_InsertIfPredicatedCall;
+
+  //Insert a call to funptr relative to an INS. The function is called only if the immediately preceding "if" analysis call returns a non-zero value and the instruction's predicate is true. See INS_InsertIfPredicatedCall for details of the semantics of mixing INS_InsertThenPredicatedCall with INS_InsertIfCall (and all the other possibilities).
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context  
+  //param 3: instruction before or after
+  //param 4: dft 's call back
+  //param 5: following variable argument list count
+  //param 6: ...  
+  f_f_t INS_InsertThenPredicatedCall;
+
+  //get executer reg id for save rep count
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context 
+  //return: executer reg id for save rep count
+  f_0_t INS_RepCountRegister;
 
   //get the instruction's disassemble string
   //param 1: pointer to a instruction
@@ -162,6 +187,31 @@ typedef struct idft_executer_api
   //param 3: which operand (from 0)
   //return: 0: no   1: yes
   f_1_t INS_OperandIsImplicit;
+
+  //true if this instruction is rep prefix
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context 
+  //return: 0: no   1: yes
+  f_0_t INS_RepPrefix;
+
+  //The base register used in the instruction's memory operand, or REG_INVALID() if there is no base register.
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context 
+  //return: executer reg id for memory base reg , or , REG_INVALID
+  f_0_t INS_MemoryBaseReg;
+
+  //get executer reg id for memory index register
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context 
+  //return: executer reg id for memory index register
+  f_0_t INS_MemoryIndexReg;
+
+
+  //get invalid execute id
+  //param 1: pointer to a instruction
+  //param 2: idft_context_t context 
+  //return: invalid executer reg id
+  f_0_t REG_INVALID;
 
 
   //check the regsiter is 32 bit 

@@ -4262,14 +4262,1151 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 				if (EXE->INS_MemoryOperandCount(ins,context) == 0) {
 					/* extract the operands */
 					reg_dst = EXE->INS_OperandReg(ins, context,  0);
-					reg_src = INS_OperandReg(ins,context, 1);
+					reg_src = EXE->INS_OperandReg(ins,context, 1);
 
+					/* 32-bit operands */
+					if (EXE->REG_is_gr32(ins,context, reg_dst)) {
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opl,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							8,
+							IARG_UINT32, 
+							REG32_INDX(ins, context,  reg_dst)
+							);
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opl,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context, reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context, reg_src)
+							);
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opl,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context, reg_src),
+							IARG_UINT32, 
+							8
+							);
+					}
+					/* 16-bit operands */
+					else if (EXE->REG_is_gr16(ins, context,reg_dst))
+						/* propagate tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							_xchg_r2r_opw,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins, context,reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins, context,reg_src)
+							);
+					/* 8-bit operands */
+					else if (EXE->REG_is_gr8(ins, context, reg_dst)) {
+						/* propagate tag accordingly */
+						if (EXE->REG_is_Lower8(ins, context, reg_dst) &&
+							EXE->REG_is_Lower8(ins, context,reg_src))
+							/* lower 8-bit registers */
+							EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+								_xchg_r2r_opb_l,
+								5, 
+								IARG_THREAD_CONTEXT,
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins, context,reg_dst),
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins, context, reg_src)
+								);
+						else if(EXE->REG_is_Upper8(ins, context,reg_dst) &&
+							EXE->REG_is_Upper8(ins, context,reg_src))	
+							/* upper 8-bit registers */
+							EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+								_xchg_r2r_opb_u,
+								5, 
+								IARG_THREAD_CONTEXT,
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins, context,reg_dst),
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins, context,reg_src)
+								);
+						else if (EXE->REG_is_Lower8(ins, context, reg_dst))
+							/* 
+							* destination register is a
+							* lower 8-bit register and
+							* source register is an upper
+							* 8-bit register
+							*/
+							EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+								_xchg_r2r_opb_lu,
+								5, 
+								IARG_THREAD_CONTEXT,
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins, context, reg_dst),
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins, context,reg_src)
+								);
+						else
+							/* 
+							* destination register is an
+							* upper 8-bit register and
+							* source register is a lower
+							* 8-bit register
+							*/
+							EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+								_xchg_r2r_opb_ul,
+								5, 
+								IARG_THREAD_CONTEXT,
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins, context, reg_dst),
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins, context, reg_src)
+								);
+					}
+				}
+				/* 
+				* 2nd operand is memory;
+				* we optimize for that case, since most
+				* instructions will have a register as
+				* the first operand -- leave the result
+				* into the reg and use it later
+				*/
+				else if (EXE->INS_OperandIsMemory(ins, context, 1)) {
+					/* extract the register operand */
+					reg_dst = EXE->INS_OperandReg(ins, context, 0);
+
+					/* 32-bit operands */
+					if (EXE->REG_is_gr32(ins, context, reg_dst))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_xchg_m2r_opl,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context, reg_dst),
+							IARG_MEMORYREAD_EA
+							);
+					/* 16-bit operands */
+					else if (EXE->REG_is_gr16(ins, context, reg_dst))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_xchg_m2r_opw,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins,  context, reg_dst),
+							IARG_MEMORYREAD_EA
+							);
+					/* 8-bit operands (upper) */
+					else if (EXE->REG_is_Upper8(ins, context, reg_dst))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_xchg_m2r_opb_u,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG8_INDX(ins,  context, reg_dst),
+							IARG_MEMORYREAD_EA
+							);
+					/* 8-bit operands (lower) */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_xchg_m2r_opb_l,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG8_INDX(ins,  context, reg_dst),
+							IARG_MEMORYREAD_EA
+							);
+				}
+				/* 1st operand is memory */
+				else {
+					/* extract the register operand */
+				reg_src = EXE->INS_OperandReg(ins,  context,  1);
+
+				/* 32-bit operands */
+				if (EXE->REG_is_gr32(ins,  context,  reg_src))
+					/* propagate the tag accordingly */
+					EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+						_xchg_m2r_opl,
+						4, 
+						IARG_THREAD_CONTEXT,
+						IARG_UINT32, 
+						(uint32_t)REG32_INDX(ins,  context, reg_src),
+						IARG_MEMORYWRITE_EA
+						);
+				/* 16-bit operands */
+				else if (EXE->REG_is_gr16(ins,  context, reg_src))
+					/* propagate the tag accordingly */
+					EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+						_xchg_m2r_opw,
+						4, 
+						IARG_THREAD_CONTEXT,
+						IARG_UINT32, 
+						(uint32_t)REG16_INDX(ins,  context,reg_src),
+						IARG_MEMORYWRITE_EA
+						);
+				/* 8-bit operands (upper) */
+				else if (EXE->REG_is_Upper8(ins,  context, reg_src))
+					/* propagate the tag accordingly */
+					EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+						_xchg_m2r_opb_u,
+						4, 
+						IARG_THREAD_CONTEXT,
+						IARG_UINT32, 
+						(uint32_t)REG8_INDX(ins,  context, reg_src),
+						IARG_MEMORYWRITE_EA
+						);
+				/* 8-bit operands (lower) */
+				else
+					/* propagate the tag accordingly */
+					INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+						_xchg_m2r_opb_l,
+						4, 
+						IARG_THREAD_CONTEXT,
+						IARG_UINT32, 
+						(uint32_t)REG8_INDX(ins,  context, reg_src),
+						IARG_MEMORYWRITE_EA
+						);
+				}
+				/* done */
+				break;
+			/* 
+			* xadd;
+			* xchg + add. We instrument this instruction  using the tag
+			* logic of xchg and add (see above)
+			*/
+			case XED_ICLASS_XADD:
+				/* both operands are registers */
+				if (EXE->INS_MemoryOperandCount(ins, context) == 0) {
+					/* extract the operands */
+					reg_dst = EXE->INS_OperandReg(ins, context,  0);
+					reg_src = EXE->INS_OperandReg(ins, context, 1);
+
+					/* 32-bit operands */
+					if (EXE->REG_is_gr32(ins, context, reg_dst)) {
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opl,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							8,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins,  context, reg_dst)
+							);
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opl,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins,  context, reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins,  context, reg_src)
+							);
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opl,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins,  context, reg_src),
+							IARG_UINT32, 
+							8
+							);
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							r2r_binary_opl,
+							5,
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins,  context, reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins,  context, reg_src)
+							);
+						
+					}
+					/* 16-bit operands */
+					else if (EXE->REG_is_gr16(ins,  context, reg_dst))
+						/* propagate tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_xadd_r2r_opw,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins,  context,reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins,  context,reg_src)
+							);
+					/* 8-bit operands */
+					else if (EXE->REG_is_gr8(ins,  context, reg_dst)) {
+						/* propagate tag accordingly */
+						if (EXE->REG_is_Lower8(ins,  context,reg_dst) &&
+							EXE->REG_is_Lower8(ins,  context, reg_src))
+							/* lower 8-bit registers */
+							EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+								_xadd_r2r_opb_l,
+								5, 
+								IARG_THREAD_CONTEXT,
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins,  context, reg_dst),
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins,  context,reg_src)
+								);
+						else if(EXE->REG_is_Upper8(ins,  context,reg_dst) &&
+							EXE->REG_is_Upper8(ins,  context, reg_src))
+							/* upper 8-bit registers */
+								INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+								_xadd_r2r_opb_u,
+								5, 
+								IARG_THREAD_CONTEXT,
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins,  context, reg_dst),
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins,  context, reg_src)
+								);
+						else if (EXE->REG_is_Lower8(ins,  context,reg_dst))
+							/* 
+							* destination register is a
+							* lower 8-bit register and
+							* source register is an upper
+							* 8-bit register
+							*/
+							EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+								_xadd_r2r_opb_lu,
+								5, 
+								IARG_THREAD_CONTEXT,
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins,  context,reg_dst),
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins,  context, reg_src)
+								);
+						else
+							/* 
+							* destination register is an
+							* upper 8-bit register and
+							* source register is a lower
+							* 8-bit register
+							*/
+							EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+								_xadd_r2r_opb_ul,
+								5,
+								IARG_THREAD_CONTEXT,
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins,  context, reg_dst),
+								IARG_UINT32, 
+								(uint32_t)REG8_INDX(ins,  context, reg_src)
+								);
+					}
 					
+				}
+				/* 1st operand is memory */
+				else {
+					/* extract the register operand */
+					reg_src = EXE->INS_OperandReg(ins,  context,  1);
+
+					/* 32-bit operands */
+					if (EXE->REG_is_gr32(ins,  context, reg_src))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_xadd_m2r_opl,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins,  context, reg_src),
+							IARG_MEMORYWRITE_EA
+							);
+					/* 16-bit operands */
+					else if (EXE->REG_is_gr16(ins,  context, reg_src))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_xadd_m2r_opw,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins,  context, reg_src),
+							IARG_MEMORYWRITE_EA
+							);
+					/* 8-bit operand (upper) */
+					else if (EXE->REG_is_Upper8(ins,  context,reg_src))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_xadd_m2r_opb_u,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG8_INDX(ins,  context,reg_src),
+							IARG_MEMORYWRITE_EA
+							);
+					/* 8-bit operand (lower) */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_xadd_m2r_opb_l,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG8_INDX(ins,  context, reg_src),
+							IARG_MEMORYWRITE_EA
+							);
 
 				}
+				/* done */
+				break;
+			/* xlat; similar to a mov between a memory location and AL */
+			case XED_ICLASS_XLAT:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+					m2r_xfer_opb_l,
+					4, 
+					IARG_THREAD_CONTEXT,
+					IARG_UINT32, 
+					(uint32_t)REG8_INDX(ins,  context,  EXE->REG_AL(ins,  context)),
+					IARG_MEMORYREAD_EA
+					);
+				/* done */
+				break;
+			/* lodsb; similar to a mov between a memory location and AL */
+			case XED_ICLASS_LODSB:	
+				/* propagate the tag accordingly */
+				EXE->INS_InsertPredicatedCall(ins, context, IDFT_IPOINT_BEFORE,
+					m2r_xfer_opb_l,
+					4, 
+					IARG_THREAD_CONTEXT,
+					IARG_UINT32, 
+					(uint32_t)REG8_INDX(ins,  context, EXE->REG_AL(ins,  context)),
+					IARG_MEMORYREAD_EA
+					);
 
+				/* done */
+				break;
+			/* lodsw; similar to a mov between a memory location and AX */
+			case XED_ICLASS_LODSW:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertPredicatedCall(ins, context, IDFT_IPOINT_BEFORE,
+					m2r_xfer_opw,
+					4, 
+					IARG_THREAD_CONTEXT,
+					IARG_UINT32,
+					(uint32_t)REG16_INDX(ins,  context, EXE->REG_AX(ins,  context)),
+					IARG_MEMORYREAD_EA
+					);
 
+				/* done */
+				break;
+			/* lodsd; similar to a mov between a memory location and EAX */
+			case XED_ICLASS_LODSD:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertPredicatedCall(ins, context, IDFT_IPOINT_BEFORE,
+					m2r_xfer_opl,
+					4, 
+					IARG_THREAD_CONTEXT,
+					IARG_UINT32, 
+					(uint32_t)REG32_INDX(ins,  context, EXE->REG_EAX(ins,  context)),
+					IARG_MEMORYREAD_EA
+					);
 
+				/* done */
+				break;
+			/* 
+			* stosb;
+			* the opposite of lodsb; however, since the instruction can
+			* also be prefixed with 'rep', the analysis code moves the
+			* tag information, accordingly, only once (i.e., before the
+			* first repetition) -- typically this will not lead in
+			* inlined code
+			*/
+			case XED_ICLASS_STOSB:
+				/* the instruction is rep prefixed */
+				if (EXE->INS_RepPrefix(ins, context)) {
+					/* propagate the tag accordingly */
+					EXE->INS_InsertIfPredicatedCall(ins, context, IDFT_IPOINT_BEFORE,
+						rep_predicate,
+						1,
+						IARG_FIRST_REP_ITERATION
+						);
+					EXE->INS_InsertThenPredicatedCall(ins, context, IDFT_IPOINT_BEFORE,
+						r2m_xfer_opbn,
+						6, 
+						IARG_THREAD_CONTEXT,
+						IARG_MEMORYWRITE_EA,
+						IARG_REG_VALUE, 
+						EXE->INS_RepCountRegister(ins, context),
+						IARG_REG_VALUE, 
+						EXE->INS_OperandReg(ins, context, 4)
+						);
+					
+				}
+				/* no rep prefix */
+				else 
+					/* the instruction is not rep prefixed */
+					EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+						r2m_xfer_opb_l,
+						4, 
+						IARG_THREAD_CONTEXT,
+						IARG_MEMORYWRITE_EA,
+						IARG_UINT32, 
+						(uint32_t)REG8_INDX(ins, context, EXE->REG_AL(ins, context))
+						);
+
+				/* done */
+				break;
+			/* 
+			* stosw; 
+			* the opposite of lodsw; however, since the instruction can
+			* also be prefixed with 'rep', the analysis code moves the
+			* tag information, accordingly, only once (i.e., before the
+			* first repetition) -- typically this will not lead in
+			* inlined code
+			*/
+			case XED_ICLASS_STOSW:
+				/* the instruction is rep prefixed */
+				if (EXE->INS_RepPrefix(ins, context)) {
+					/* propagate the tag accordingly */
+					EXE->INS_InsertIfPredicatedCall(ins, context, IDFT_IPOINT_BEFORE,
+						rep_predicate,
+						1,
+						IARG_FIRST_REP_ITERATION
+						);
+					EXE->INS_InsertThenPredicatedCall(ins,  context, IDFT_IPOINT_BEFORE,
+						r2m_xfer_opwn,
+						6, 
+						IARG_THREAD_CONTEXT,
+						IARG_MEMORYWRITE_EA,
+						IARG_REG_VALUE, 
+						EXE->INS_RepCountRegister(ins ,  context),
+						IARG_REG_VALUE, 
+						EXE->INS_OperandReg(ins, context, 4)
+						);
+				}
+				/* no rep prefix */
+				else
+					/* the instruction is not rep prefixed */
+					EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+						r2m_xfer_opw,
+						4, 
+						IARG_THREAD_CONTEXT,
+						IARG_MEMORYWRITE_EA,
+						IARG_UINT32, 
+						(uint32_t)REG16_INDX(ins, context, EXE->REG_AX(ins ,  context))
+						);
+
+				/* done */
+				break;
+			/* 
+			* stosd;
+			* the opposite of lodsd; however, since the instruction can
+			* also be prefixed with 'rep', the analysis code moves the
+			* tag information, accordingly, only once (i.e., before the
+			* first repetition) -- typically this will not lead in
+			* inlined code
+			*/
+			case XED_ICLASS_STOSD:
+				/* the instruction is rep prefixed */
+				if (EXE->INS_RepPrefix(ins, context)) {
+					/* propagate the tag accordingly */
+					EXE->INS_InsertIfPredicatedCall(ins,  context, IDFT_IPOINT_BEFORE,
+						rep_predicate,
+						1,
+						IARG_FIRST_REP_ITERATION
+						);
+					
+					EXE->INS_InsertThenPredicatedCall(ins,  context, IDFT_IPOINT_BEFORE,
+						r2m_xfer_opln,
+						6, 
+						IARG_THREAD_CONTEXT,
+						IARG_MEMORYWRITE_EA,
+						IARG_REG_VALUE, 
+						EXE->INS_RepCountRegister(ins, context),
+						IARG_REG_VALUE, 
+						EXE->INS_OperandReg(ins , context, 4)
+						);
+				}
+				/* no rep prefix */
+				else
+					EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+						r2m_xfer_opl,
+						4,
+						IARG_THREAD_CONTEXT,
+						IARG_MEMORYWRITE_EA,
+						IARG_UINT32, 
+						(uint32_t)REG32_INDX( ins, context, EXE->REG_EAX(ins,  context))
+						);
+
+				/* done */
+				break;
+			/* movsd */
+			case XED_ICLASS_MOVSD:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertPredicatedCall(ins,  context, IDFT_IPOINT_BEFORE,
+					m2m_xfer_opl,
+					2,
+					IARG_MEMORYWRITE_EA,
+					IARG_MEMORYREAD_EA
+					);
+
+				/* done */
+				break;
+			/* movsw */
+			case XED_ICLASS_MOVSW:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertPredicatedCall(ins,  context, IDFT_IPOINT_BEFORE,
+					m2m_xfer_opw,
+					2,
+					IARG_MEMORYWRITE_EA,
+					IARG_MEMORYREAD_EA
+					);
+
+				/* done */
+				break;
+			/* movsb */
+			case XED_ICLASS_MOVSB:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertPredicatedCall(ins,  context, IDFT_IPOINT_BEFORE,
+					m2m_xfer_opb,
+					2,
+					IARG_MEMORYWRITE_EA,
+					IARG_MEMORYREAD_EA
+					);
+
+				/* done */
+				break;
+			/* sal */
+			case XED_ICLASS_SALC:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+					r_clrb_l,
+					3, 
+					IARG_THREAD_CONTEXT,
+					IARG_UINT32, 
+					(uint32_t)REG8_INDX( ins,  context, EXE->REG_AL(ins,  context))
+					);
+
+				/* done */
+				break;
+			/* TODO: shifts are not handled (yet) */
+			/* rcl */
+			case XED_ICLASS_RCL:
+			/* rcr */        
+			case XED_ICLASS_RCR:
+			/* rol */        
+			case XED_ICLASS_ROL:
+			/* ror */        
+			case XED_ICLASS_ROR:
+			/* sal/shl */
+			case XED_ICLASS_SHL:
+			/* sar */
+			case XED_ICLASS_SAR:
+			/* shr */
+			case XED_ICLASS_SHR:
+			/* shld */
+			case XED_ICLASS_SHLD:
+			case XED_ICLASS_SHRD:
+
+				/* done */
+				break;
+			/* pop; mov equivalent (see above) */
+			case XED_ICLASS_POP: 
+				/* register operand */
+				if (EXE->INS_OperandIsReg(ins, context,  0)) {
+					/* extract the operand */
+					reg_dst = EXE->INS_OperandReg(ins, context, 0);
+
+					/* 32-bit operand */
+					if (EXE->REG_is_gr32(ins, context,reg_dst))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							m2r_xfer_opl,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins,  context, reg_dst),
+							IARG_MEMORYREAD_EA
+							);
+					/* 16-bit operand */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							m2r_xfer_opw,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins,  context,  reg_dst),
+							IARG_MEMORYREAD_EA
+							);
+				}
+				/* memory operand */
+				else if (EXE->INS_OperandIsMemory(ins, context, 0)) {
+					/* 32-bit operand */
+					if (EXE->INS_MemoryWriteSize(ins, context) ==
+							BIT2BYTE(MEM_LONG_LEN))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							m2m_xfer_opl,
+							2,
+							IARG_MEMORYWRITE_EA,
+							IARG_MEMORYREAD_EA
+							);
+					/* 16-bit operand */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							m2m_xfer_opw,
+							2,
+							IARG_MEMORYWRITE_EA,
+							IARG_MEMORYREAD_EA
+							);
+
+				}
+				/* done */
+				break;
+			/* push; mov equivalent (see above) */
+			case XED_ICLASS_PUSH:
+				/* register operand */
+				if (EXE->INS_OperandIsReg(ins, context, 0)) {
+					/* extract the operand */
+					reg_src = EXE->INS_OperandReg(ins, context, 0);
+
+					/* 32-bit operand */
+					if (EXE->REG_is_gr32(ins, context, reg_src))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							r2m_xfer_opl,
+							4,
+							IARG_THREAD_CONTEXT,
+							IARG_MEMORYWRITE_EA,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins,  context, reg_src)
+							);
+					/* 16-bit operand */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							r2m_xfer_opw,
+							4, 
+							IARG_THREAD_CONTEXT,
+							IARG_MEMORYWRITE_EA,
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins,  context,reg_src)
+							);
+				}
+				/* memory operand */
+				else if (EXE->INS_OperandIsMemory(ins,  context, 0)) {
+					/* 32-bit operand */
+					if (EXE->INS_MemoryWriteSize(ins,context) ==
+							BIT2BYTE(MEM_LONG_LEN))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							m2m_xfer_opl,
+							2,
+							IARG_MEMORYWRITE_EA,
+							IARG_MEMORYREAD_EA
+							);
+					/* 16-bit operand */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							m2m_xfer_opw,
+							2,
+							IARG_MEMORYWRITE_EA,
+							IARG_MEMORYREAD_EA
+							);
+				}
+				/* immediate or segment operand; clean */
+				else {
+					/* clear n-bytes */
+					switch (EXE->INS_OperandWidth(ins, context, 0)) {
+						/* 4 bytes */
+						case MEM_LONG_LEN:
+							/* propagate the tag accordingly */
+							EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+								tagmap_clrl,
+								1,
+								IARG_MEMORYWRITE_EA
+								);
+
+								/* done */
+								break;
+						/* 2 bytes */
+						case MEM_WORD_LEN:
+							/* propagate the tag accordingly */
+							EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+								tagmap_clrw,
+								1,
+								IARG_MEMORYWRITE_EA
+								);
+
+								/* done */
+								break;
+						/* 1 byte */
+						case MEM_BYTE_LEN:
+							/* propagate the tag accordingly */
+							EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+								tagmap_clrb,
+								1,
+								IARG_MEMORYWRITE_EA
+								);
+
+								/* done */
+								break;
+						/* make the compiler happy */
+						default:
+							/* done */
+							break;
+					}
+				}
+
+				/* done */
+				break;
+			/* popa;
+			* similar to pop but for all the 16-bit
+			* general purpose registers
+			*/
+			case XED_ICLASS_POPA:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+					m2r_restore_opw,
+					2, 
+					IARG_THREAD_CONTEXT,
+					IARG_MEMORYREAD_EA
+					);
+
+				/* done */
+				break;
+			/* popad; 
+			* similar to pop but for all the 32-bit
+			* general purpose registers
+			*/
+			case XED_ICLASS_POPAD:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+					m2r_restore_opl,
+					2, 
+					IARG_THREAD_CONTEXT,
+					IARG_MEMORYREAD_EA
+					);
+
+				/* done */
+				break;
+			/* pusha; 
+			* similar to push but for all the 16-bit
+			* general purpose registers
+			*/
+			case XED_ICLASS_PUSHA:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+					r2m_save_opw,
+					2, 
+					IARG_THREAD_CONTEXT,
+					IARG_MEMORYWRITE_EA
+					);
+
+				/* done */
+				break;
+			/* pushad; 
+			* similar to push but for all the 32-bit
+			* general purpose registers
+			*/
+			case XED_ICLASS_PUSHAD:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+					r2m_save_opl,
+					2, 
+					IARG_THREAD_CONTEXT,
+					IARG_MEMORYWRITE_EA
+					);
+
+				/* done */
+				break;
+			/* pushf; clear a memory word (i.e., 16-bits) */
+			case XED_ICLASS_PUSHF:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+					tagmap_clrw,
+					1,
+					IARG_MEMORYWRITE_EA
+					);
+
+				/* done */
+				break;
+			/* pushfd; clear a double memory word (i.e., 32-bits) */
+			case XED_ICLASS_PUSHFD:
+				/* propagate the tag accordingly */
+				EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+					tagmap_clrl,
+					1,
+					IARG_MEMORYWRITE_EA
+					);
+
+				/* done */
+				break;
+			/* call (near); similar to push (see above) */
+			case XED_ICLASS_CALL_NEAR:
+				/* relative target */
+				if (EXE->INS_OperandIsImmediate(ins, context, 0)) {
+					/* 32-bit operand */
+					if (EXE->INS_OperandWidth(ins, context, 0) == MEM_LONG_LEN)
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							tagmap_clrl,
+							1,
+							IARG_MEMORYWRITE_EA
+							);
+					/* 16-bit operand */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							tagmap_clrw,
+							1,
+							IARG_MEMORYWRITE_EA
+							);
+				}
+				/* absolute target; register */
+				else if (EXE->INS_OperandIsReg(ins, context, 0)) {
+					/* extract the source register */
+					reg_src = INS_OperandReg(ins, context, 0);
+
+					/* 32-bit operand */
+					if (EXE->REG_is_gr32(ins, context, reg_src))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							tagmap_clrl,
+							1,
+							IARG_MEMORYWRITE_EA
+							);
+					/* 16-bit operand */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							tagmap_clrw,
+							1,
+							IARG_MEMORYWRITE_EA
+							);
+				}
+				/* absolute target; memory */
+				else {
+					/* 32-bit operand */
+					if (EXE->INS_OperandWidth(ins, context, 0) == MEM_LONG_LEN)
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							tagmap_clrl,
+							1,
+							IARG_MEMORYWRITE_EA
+							);
+					/* 16-bit operand */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							tagmap_clrw,
+							1,
+							IARG_MEMORYWRITE_EA
+							);
+				}
+				/* done */
+				break;
+			/* 
+			* leave;
+			* similar to a mov between ESP/SP and EBP/BP, and a pop
+			*/
+			case XED_ICLASS_LEAVE:
+				/* extract the operands */
+				reg_dst = INS_OperandReg(ins, context,  3);
+				reg_src = INS_OperandReg(ins, context, 2);
+
+				/* 32-bit operands */	
+				if (EXE->REG_is_gr32(ins, context, reg_dst)) {
+					/* propagate the tag accordingly */
+					EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+						r2r_xfer_opl,
+						5,
+						IARG_THREAD_CONTEXT,
+						IARG_UINT32, 
+						(uint32_t)REG32_INDX(ins, context, reg_dst),
+						IARG_UINT32, 
+						(uint32_t)REG32_INDX(ins, context, reg_src)
+						);
+					EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+						m2r_xfer_opl,
+						4,
+						IARG_THREAD_CONTEXT,
+						IARG_UINT32, 
+						(uint32_t)REG32_INDX(ins, context, reg_src),
+						IARG_MEMORYREAD_EA
+						);
+				}
+				/* 16-bit operands */
+				else {
+					/* propagate the tag accordingly */
+					EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+						r2r_xfer_opw,
+						5, 
+						IARG_THREAD_CONTEXT,
+						IARG_UINT32, 
+						(uint32_t)REG16_INDX(ins, context, reg_dst),
+						IARG_UINT32, 
+						(uint32_t)REG16_INDX(ins, context,reg_src)
+						);
+					EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+						m2r_xfer_opw,
+						4, 
+						IARG_THREAD_CONTEXT,
+						IARG_UINT32, 
+						(uint32_t)REG16_INDX(ins, context, reg_src),
+						IARG_MEMORYREAD_EA
+						);
+				}
+				/* done */
+				break;	
+			/* lea */
+			case XED_ICLASS_LEA:
+				/*
+				* the general format of this instruction
+				* is the following: dst = src_base | src_indx.
+				* We move the tags of the source base and index
+				* registers to the destination
+				* (i.e., t[dst] = t[src_base] | t[src_indx])
+				*/
+
+				/* extract the operands */
+				reg_base	= EXE->INS_MemoryBaseReg(ins, context);
+				reg_indx	= EXE->INS_MemoryIndexReg(ins, context);
+				reg_dst		= EXE->INS_OperandReg(ins, context, 0);
+
+				/* no base or index register; clear the destination */
+				if (reg_base == EXE->REG_INVALID(ins, context) &&
+						reg_indx == EXE->REG_INVALID(ins, context)) {
+					
+					/* 32-bit operands */
+					if (EXE->REG_is_gr32(ins, context, reg_dst))
+						/* clear */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							r_clrl,
+							3, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32,
+							(uint32_t)REG32_INDX(ins, context, reg_dst)
+							);
+					/* 16-bit operands */
+					else 
+						/* clear */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							r_clrw,
+							3, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32,
+							(uint32_t)REG16_INDX(ins, context,reg_dst)
+							);
+
+				}
+				/* base register exists; no index register */
+				if (reg_base != REG_INVALID(ins, context) &&
+						reg_indx == REG_INVALID(ins, context)) {
+					/* 32-bit operands */
+					if (EXE->REG_is_gr32(ins, context,reg_dst))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opl,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context,reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context,reg_base)
+							);
+					/* 16-bit operands */
+					else 
+						/* propagate tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opw,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins, context, reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins, context, reg_base)
+							);
+				}
+				/* index register exists; no base register */
+				if (reg_base == EXE->REG_INVALID(ins, context) &&
+						reg_indx != EXE->REG_INVALID(ins, context)) {
+					/* 32-bit operands */
+					if (EXE->REG_is_gr32(ins, context ,reg_dst))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opl,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context, reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context, reg_indx)
+							);
+					/* 16-bit operands */
+					else
+						/* propagate tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							r2r_xfer_opw,
+							5, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins, context, reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins, context, reg_indx)
+							);
+				}
+				/* base and index registers exist */
+				if (reg_base != REG_INVALID(ins,  context) &&
+						reg_indx != REG_INVALID(ins,  context)) {
+					/* 32-bit operands */
+					if (EXE->REG_is_gr32(ins,  context, reg_dst))
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_lea_r2r_opl,
+							7, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context, reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context, reg_base),
+							IARG_UINT32, 
+							(uint32_t)REG32_INDX(ins, context, reg_indx)
+							);
+					/* 16-bit operands */
+					else
+						/* propagate the tag accordingly */
+						EXE->INS_InsertCall(ins,  context, IDFT_IPOINT_BEFORE,
+							_lea_r2r_opw,
+							7, 
+							IARG_THREAD_CONTEXT,
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins, context, reg_dst),
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins, context, reg_base),
+							IARG_UINT32, 
+							(uint32_t)REG16_INDX(ins, context,reg_indx)
+							);			
+				}
+				/* done */
+				break;
+			/* cmpxchg */
+			case XED_ICLASS_CMPXCHG8B:
+			/* enter */
+			case XED_ICLASS_ENTER:
+				IDFT_LOG("unhandled operand： %s\n",EXE->INS_Disassemble(ins, context) );
+
+				/* done */
+				break;
+
+			/* 
+			* default handler
+			*/
+			default:
+			/* (void)fprintf(stdout, "%s\n",
+				INS_Disassemble(ins).c_str()); */
+			break;
 		}
 }	
 
