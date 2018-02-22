@@ -2650,7 +2650,7 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 							 * markings accordingly
 							 */
 							EXE->INS_InsertCall(ins, context, IDFT_IPOINT_BEFORE, 
-							r_clrl, 
+							r2r_binary_opl, 
 							5,
 							IARG_THREAD_CONTEXT,
 							IARG_UINT32,
