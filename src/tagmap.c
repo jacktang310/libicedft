@@ -33,13 +33,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/mman.h>
+// modifiy by menertry
+// #include <sys/mman.h>
 
 //#include <cstdio>
 //#include <cstdint>
 //include <cstdlib>
 
 #include <stdint.h>
+
+// add by menertry
+#include "dr_api.h"
 
 #include "tagmap.h"
 #include "branch_pred.h"
@@ -80,11 +84,13 @@ tagmap_alloc(void)
 	 * if HUGE_TLB is defined, then the mapping is done
 	 * using ``huge pages''
 	 */
-	if (unlikely((bitmap = (uint8_t *)mmap(NULL,
-						BITMAP_SZ,
-						PROT_READ | PROT_WRITE,
-						MAP_FLAGS,
-						-1, 0)) == MAP_FAILED))
+	// modify by menertry
+	// if (unlikely((bitmap = (uint8_t *)mmap(NULL,
+	// 					BITMAP_SZ,
+	// 					PROT_READ | PROT_WRITE,
+	// 					MAP_FLAGS,
+	// 					-1, 0)) == MAP_FAILED))
+	if (unlikely(bitmap = dr_global_alloc(dr_get_current_drcontext(), BITMAP_SZ) == NULL))
 		/* return with failure */
 		return 1;
 
@@ -99,7 +105,9 @@ void
 tagmap_free(void)
 {
 	/* deallocate the bitmap space */
-	(void)munmap(bitmap, BITMAP_SZ);
+	// modify by menertry
+	// (void)munmap(bitmap, BITMAP_SZ);
+	dr_global_free(dr_get_current_drcontext(), bitmap, BITMAP_SZ);
 }
 
 /*

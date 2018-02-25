@@ -33,7 +33,8 @@
 
 #include <errno.h>
 #include <string.h>
-#include <unistd.h>
+// modify by menertry
+// #include <unistd.h>
 #include <stdlib.h>
 
 #include "libicedft_api.h"
