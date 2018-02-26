@@ -90,9 +90,11 @@ tagmap_alloc(void)
 	// 					PROT_READ | PROT_WRITE,
 	// 					MAP_FLAGS,
 	// 					-1, 0)) == MAP_FAILED))
-	if (unlikely(bitmap = dr_global_alloc(dr_get_current_drcontext(), BITMAP_SZ) == NULL))
+	bitmap = dr_global_alloc(BITMAP_SZ);
+	if (bitmap == NULL) {
 		/* return with failure */
 		return 1;
+	}
 
 	/* return with success */
 	return 0;
@@ -107,7 +109,7 @@ tagmap_free(void)
 	/* deallocate the bitmap space */
 	// modify by menertry
 	// (void)munmap(bitmap, BITMAP_SZ);
-	dr_global_free(dr_get_current_drcontext(), bitmap, BITMAP_SZ);
+	dr_global_free(bitmap, BITMAP_SZ);
 }
 
 /*

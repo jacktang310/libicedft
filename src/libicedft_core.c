@@ -2567,7 +2567,6 @@ void r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
  *
  * @ins:	the instruction to be instrumented
  */
-
 void
 ins_inspect(idft_ins_t* ins , idft_context_t * context)
 {
@@ -2942,7 +2941,7 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 			 */
 			if (EXE->INS_OperandIsImmediate(ins, context, 1) ||
 				(EXE->INS_OperandIsReg(ins, context, 1) &&
-				EXE->REG_is_seg( ins, context, EXE->INS_OperandReg(ins, context, 1)))) {
+				EXE->REG_is_seg(ins, context, EXE->INS_OperandReg(ins, context, 1)))) {
 					/* destination operand is a memory address */
 					if (EXE->INS_OperandIsMemory(ins, context, 0)) {
 						/* clear n-bytes */
@@ -3140,7 +3139,7 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 			 	* the first operand -- leave the result
 			 	* into the reg and use it later
 			 	*/
-				else if (EXE->INS_OperandIsMemory(ins, context,1)) { 
+				else if (EXE->INS_OperandIsMemory(ins, context,1)) {
 					/* extract the register operand */
 					reg_dst = EXE->INS_OperandReg(ins, context, 0);
 

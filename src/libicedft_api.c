@@ -57,12 +57,14 @@ libdft_init( idft_executer_api_t* executer_api ,  idft_context_t ** pcontext)
     idft_context_t * context = NULL;
 
 	/* initialize the tagmap; optimized branch */
-	if (unlikely(tagmap_alloc()))
+	if (tagmap_alloc())
 		/* tagmap initialization failed */
 		return 1;
 
-    context = malloc(sizeof(idft_context_t));
-    
+	// modify by menertry
+    // context = malloc(sizeof(idft_context_t));
+	context = (idft_context_t *)dr_global_alloc(sizeof(idft_context_t));
+
 	*pcontext = context;
 
 	/* success */
@@ -82,9 +84,9 @@ libdft_die(idft_context_t * context)
 	/* deallocate the resources needed for the tagmap */
 	tagmap_free();
 
-    free(context);
-
-
+	// modify by menertry
+    // free(context);
+	dr_global_free(context, sizeof(idft_context_t));
 }
 
 
