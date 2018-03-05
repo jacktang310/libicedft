@@ -46,12 +46,13 @@
 /*
  * initialization of the core tagging engine;
  * it must be called before using everything else
- *
- *
+ * executer_api: interfaces which is implemented by executer
+ * executer_context: the executer self context 
+ * pcontext: out context
  * returns: 0 on success, 1 on error
  */
 int
-libdft_init( idft_executer_api_t* executer_api ,  idft_context_t ** pcontext)
+libdft_init( idft_executer_api_t* executer_api ,   void* executer_context , idft_context_t ** pcontext)
 {
 
     idft_context_t * context = NULL;
@@ -62,8 +63,14 @@ libdft_init( idft_executer_api_t* executer_api ,  idft_context_t ** pcontext)
 		return 1;
 
     context = malloc(sizeof(idft_context_t));
+
+	context->executer_api = executer_api;
+
+	context->executer_context = executer_context;
     
 	*pcontext = context;
+
+
 
 	/* success */
 	return 0;

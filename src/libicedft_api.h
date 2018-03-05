@@ -126,9 +126,26 @@ typedef struct {
 
 
 /* libdft API */
-int	libicedft_init(idft_executer_api_t* executer_api ,  idft_context_t ** pcontext);
-void libicedft_die(void);
 
+/*
+ * initialization of the core tagging engine;
+ * it must be called before using everything else
+ * executer_api: interfaces which is implemented by executer
+ * executer_context: the executer self context 
+ * pcontext: out context
+ * returns: 0 on success, 1 on error
+ */
+int libdft_init( idft_executer_api_t* executer_api ,   void* executer_context , idft_context_t ** pcontext);
+
+/*
+ * destroy
+ */
+void libdft_die(idft_context_t * context);
+
+/*
+apply dft populate logic to input instruction
+*/
+void ins_inspect(idft_ins_t* ins , idft_context_t * context);
 
 /* REG API */
 uint32_t REG32_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);

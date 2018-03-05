@@ -25,7 +25,6 @@ typedef enum{
 typedef enum{
   IARG_ADDRINT,  //Type: ADDRINT. Constant value (additional arg required).
   IARG_UINT32,  //Type: UINT32. Constant (additional integer arg required).
-  IARG_UINT64,  //Type: UINT64. Constant (additional UINT64 arg required).
   IARG_MEMORYREAD_EA, //Type: ADDRINT. Effective address of a memory read, only valid if INS_IsMemoryRead is true and at IPOINT_BEFORE.
   IARG_MEMORYWRITE_EA,  //Type: ADDRINT. Effective address of a memory write, only valid at IPOINT_BEFORE. 
   IARG_THREAD_CONTEXT, // thread_ctx_t pointer
@@ -321,7 +320,7 @@ typedef struct idft_context
 {
   idft_executer_api_t*  executer_api;
   
-
+  void* executer_context;
 
 }idft_context_t;
 
