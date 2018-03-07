@@ -42,9 +42,6 @@
 
 #include <stdint.h>
 
-// add by menertry
-#include "dr_api.h"
-
 #include "tagmap.h"
 #include "branch_pred.h"
 
