@@ -147,4 +147,10 @@ REG8_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg)
 }
 
 
+uint8_t* libdft_tag_bitmap()
+{
+	return bitmap;
+}
+
+
 

@@ -157,6 +157,10 @@ LIBICEDFT_EXPORT uint32_t REG32_INDX(idft_ins_t* ins , idft_context_t * context,
 LIBICEDFT_EXPORT uint32_t REG16_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
 LIBICEDFT_EXPORT uint32_t REG8_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
 
+//get tag bitmap
+LIBICEDFT_EXPORT uint8_t* libdft_tag_bitmap();
+
+
 #ifdef __cplusplus
 }
 #endif
