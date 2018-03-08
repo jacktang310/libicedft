@@ -33,12 +33,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-// modifiy by menertry
-// #include <sys/mman.h>
+
+#ifdef __GNUC__
+//modifiy by menertry
+#include <sys/mman.h>
 
 //#include <cstdio>
 //#include <cstdint>
-//include <cstdlib>
+//#include <cstdlib>
+#endif
 
 #include <stdint.h>
 
@@ -81,16 +84,21 @@ tagmap_alloc(void)
 	 * if HUGE_TLB is defined, then the mapping is done
 	 * using ``huge pages''
 	 */
+
+	//modified by jack
+#ifdef __GNUC__
 	// modify by menertry
-	// if (unlikely((bitmap = (uint8_t *)mmap(NULL,
-	// 					BITMAP_SZ,
-	// 					PROT_READ | PROT_WRITE,
-	// 					MAP_FLAGS,
-	// 					-1, 0)) == MAP_FAILED))
+	if (unlikely((bitmap = (uint8_t *)mmap(NULL,
+						BITMAP_SZ,
+						PROT_READ | PROT_WRITE,
+						MAP_FLAGS,
+						-1, 0)) == MAP_FAILED))
+#else
 	if (unlikely(bitmap = dr_global_alloc(dr_get_current_drcontext(), BITMAP_SZ) == NULL))
 		/* return with failure */
 		return 1;
 
+#endif
 	/* return with success */
 	return 0;
 }
@@ -102,9 +110,13 @@ void
 tagmap_free(void)
 {
 	/* deallocate the bitmap space */
+
+	#ifdef __GNUC__
 	// modify by menertry
-	// (void)munmap(bitmap, BITMAP_SZ);
-	dr_global_free(dr_get_current_drcontext(), bitmap, BITMAP_SZ);
+		(void)munmap(bitmap, BITMAP_SZ);
+	#else
+		dr_global_free(dr_get_current_drcontext(), bitmap, BITMAP_SZ);
+	#endif
 }
 
 /*
