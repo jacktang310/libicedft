@@ -95,10 +95,12 @@ tagmap_alloc(void)
 						-1, 0)) == MAP_FAILED))
 #else
 	if (unlikely(bitmap = dr_global_alloc(dr_get_current_drcontext(), BITMAP_SZ) == NULL))
+
+#endif
 		/* return with failure */
 		return 1;
 
-#endif
+
 	/* return with success */
 	return 0;
 }
