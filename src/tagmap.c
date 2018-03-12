@@ -33,17 +33,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-// modifiy by menertry
-// #include <sys/mman.h>
+
+#ifdef __GNUC__
+//modifiy by menertry
+#include <sys/mman.h>
 
 //#include <cstdio>
 //#include <cstdint>
-//include <cstdlib>
-
-#include <stdint.h>
+//#include <cstdlib>
+#endif
 
 // add by menertry
+#ifndef __GNUC__
 #include "dr_api.h"
+#endif
+
+
+#include <stdint.h>
 
 #include "tagmap.h"
 #include "branch_pred.h"
@@ -84,19 +90,25 @@ tagmap_alloc(void)
 	 * if HUGE_TLB is defined, then the mapping is done
 	 * using ``huge pages''
 	 */
+
+	//modified by jack
+#ifdef __GNUC__
 	// modify by menertry
-	// if (unlikely((bitmap = (uint8_t *)mmap(NULL,
-	// 					BITMAP_SZ,
-	// 					PROT_READ | PROT_WRITE,
-	// 					MAP_FLAGS,
-	// 					-1, 0)) == MAP_FAILED))
-	bitmap = dr_global_alloc(BITMAP_SZ);
-	memset(bitmap, 0, BITMAP_SZ);
-	
-	if (bitmap == NULL) {
+	if (unlikely((bitmap = (uint8_t *)mmap(NULL,
+						BITMAP_SZ,
+						PROT_READ | PROT_WRITE,
+						MAP_FLAGS,
+						-1, 0)) == MAP_FAILED))
+#else
+	if (unlikely(bitmap = dr_global_alloc(dr_get_current_drcontext(), BITMAP_SZ) == NULL))
+
+#endif
+		// add by menertry
+		memset(bitmap, 0, BITMAP_SZ);
 		/* return with failure */
 		return 1;
 	}
+
 
 	/* return with success */
 	return 0;
@@ -109,9 +121,13 @@ void
 tagmap_free(void)
 {
 	/* deallocate the bitmap space */
+
 	// modify by menertry
-	// (void)munmap(bitmap, BITMAP_SZ);
+#ifdef __GNUC__
+	(void)munmap(bitmap, BITMAP_SZ);
+#else
 	dr_global_free(bitmap, BITMAP_SZ);
+#endif
 }
 
 /*
@@ -940,12 +956,19 @@ tagmap_clrn(size_t addr, size_t num)
 			/* untag 1 byte; similar to tagmap_clrb() */
 			case 1:
 				tagmap_clrb(addr);
+				
+				addr++; //added by jack for fix bug
+
 				num--;
 				break;
 			/* untag 2 bytes; similar to tagmap_clrw() */
 			case 2:
 				tagmap_clrw(addr);
+
+				addr+=2; //added by jack for fix bug
+
 				num -= 2;
+				
 				break;
 			/* untag 3 bytes */
 			case 3:
@@ -955,11 +978,17 @@ tagmap_clrn(size_t addr, size_t num)
 				 */
 				*((uint16_t *)(bitmap + VIRT2BYTE(addr))) &=
 					~(_3BYTE_MASK << VIRT2BIT(addr));
+
+				addr+=3; //added by jack for fix bug
+
 				num -= 3;
 				break;
 			/* untag 4 bytes; similar to tagmap_clrl() */
 			case 4:
 				tagmap_clrl(addr);
+
+				addr+=4; //added by jack for fix bug
+
 				num -= 4;
 				break;
 			/* untag 5 bytes */
@@ -970,6 +999,9 @@ tagmap_clrn(size_t addr, size_t num)
 				 */
 				*((uint16_t *)(bitmap + VIRT2BYTE(addr))) &=
 					~(_5BYTE_MASK << VIRT2BIT(addr));
+
+				addr+=5; //added by jack for fix bug
+
 				num -= 5;
 				break;
 			/* untag 6 bytes */
@@ -980,6 +1012,9 @@ tagmap_clrn(size_t addr, size_t num)
 				 */
 				*((uint16_t *)(bitmap + VIRT2BYTE(addr))) &=
 					~(_6BYTE_MASK << VIRT2BIT(addr));
+
+				addr+=6; //added by jack for fix bug
+
 				num -= 6;
 				break;
 			/* untag 7 bytes */
@@ -990,11 +1025,17 @@ tagmap_clrn(size_t addr, size_t num)
 				 */
 				*((uint16_t *)(bitmap + VIRT2BYTE(addr))) *=
 					~(_7BYTE_MASK << VIRT2BIT(addr));
+
+				addr+=7; //added by jack for fix bug
+
 				num -= 7;
 				break;
 			/* untag 8 bytes; similar to tagmap_clrq() */
 			default:
 				tagmap_clrq(addr);
+
+				addr+=8; //added by jack for fix bug
+
 				num -= 8; 
 				break;
 		}

@@ -42,16 +42,21 @@
 #include "tagmap.h"
 #include "branch_pred.h"
 
+#ifndef __GNUC__
+	#include "dr_api.h"
+#endif
+
 
 /*
  * initialization of the core tagging engine;
  * it must be called before using everything else
- *
- *
+ * executer_api: interfaces which is implemented by executer
+ * executer_context: the executer self context 
+ * pcontext: out context
  * returns: 0 on success, 1 on error
  */
 int
-libdft_init( idft_executer_api_t* executer_api ,  idft_context_t ** pcontext)
+libdft_init( idft_executer_api_t* executer_api ,   void* executer_context , idft_context_t ** pcontext)
 {
 
     idft_context_t * context = NULL;
@@ -61,10 +66,16 @@ libdft_init( idft_executer_api_t* executer_api ,  idft_context_t ** pcontext)
 		/* tagmap initialization failed */
 		return 1;
 
-	// modify by menertry
-    // context = malloc(sizeof(idft_context_t));
+#ifdef __GNUC__
+    context = malloc(sizeof(idft_context_t));
+#else
 	context = (idft_context_t *)dr_global_alloc(sizeof(idft_context_t));
+#endif
 
+	context->executer_api = executer_api;
+
+	context->executer_context = executer_context;
+    
 	*pcontext = context;
 
 	/* success */
@@ -139,6 +150,12 @@ REG8_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg)
 	indx = (uint32_t) context->executer_api->REG8_INDX(NULL , context, reg);
 
 	return indx; 
+}
+
+
+uint8_t* libdft_tag_bitmap()
+{
+	return bitmap;
 }
 
 

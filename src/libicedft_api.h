@@ -35,6 +35,8 @@
 #include <stdint.h>
 #include "libicedft_types.h"
 
+#define LIBICEDFT_EXPORT 
+
 
 
 #define GPR_NUM		8			/* general purpose registers */
@@ -124,17 +126,43 @@ typedef struct {
 
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* libdft API */
-int	libicedft_init(idft_executer_api_t* executer_api ,  idft_context_t ** pcontext);
-void libicedft_die(void);
 
+/*
+ * initialization of the core tagging engine;
+ * it must be called before using everything else
+ * executer_api: interfaces which is implemented by executer
+ * executer_context: the executer self context 
+ * pcontext: out context
+ * returns: 0 on success, 1 on error
+ */
+LIBICEDFT_EXPORT int libdft_init( idft_executer_api_t* executer_api ,   void* executer_context , idft_context_t ** pcontext);
+
+/*
+ * destroy
+ */
+LIBICEDFT_EXPORT void libdft_die(idft_context_t * context);
+
+/*
+apply dft populate logic to input instruction
+*/
+LIBICEDFT_EXPORT void ins_inspect(idft_ins_t* ins , idft_context_t * context);
 
 /* REG API */
-uint32_t REG32_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
-uint32_t REG16_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
-uint32_t REG8_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
+LIBICEDFT_EXPORT uint32_t REG32_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
+LIBICEDFT_EXPORT uint32_t REG16_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
+LIBICEDFT_EXPORT uint32_t REG8_INDX(idft_ins_t* ins , idft_context_t * context, idft_reg_t reg);
+
+//get tag bitmap
+LIBICEDFT_EXPORT uint8_t* libdft_tag_bitmap();
 
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -4761,7 +4761,9 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 						IARG_REG_VALUE, 
 						EXE->INS_RepCountRegister(ins, context),
 						IARG_REG_VALUE, 
-						EXE->INS_OperandReg(ins, context, 4)
+						//dft logic modified by jack 
+						//EXE->INS_OperandReg(ins, context, 4)
+						EXE->REG_EFLAGS(ins, context)
 						);
 					
 				}
@@ -4803,8 +4805,10 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 						IARG_MEMORYWRITE_EA,
 						IARG_REG_VALUE, 
 						EXE->INS_RepCountRegister(ins ,  context),
-						IARG_REG_VALUE, 
-						EXE->INS_OperandReg(ins, context, 4)
+						IARG_REG_VALUE,
+						//dft logic modified by jack 
+						//EXE->INS_OperandReg(ins, context, 4)
+						EXE->REG_EFLAGS(ins, context)
 						);
 				}
 				/* no rep prefix */
@@ -4847,7 +4851,9 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 						IARG_REG_VALUE, 
 						EXE->INS_RepCountRegister(ins, context),
 						IARG_REG_VALUE, 
-						EXE->INS_OperandReg(ins , context, 4)
+						//dft logic modified by jack
+						//EXE->INS_OperandReg(ins , context, 4)   
+						EXE->REG_EFLAGS(ins, context)
 						);
 				}
 				/* no rep prefix */
@@ -5438,6 +5444,7 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 			break;
 		}
 }	
+
 
     
 

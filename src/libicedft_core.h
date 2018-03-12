@@ -55,7 +55,4 @@ enum {
 };
 
 
-/* core API */
-void ins_inspect(idft_ins_t* ins , idft_context_t * context);
-
 #endif /* LIBDFT_CORE_H */

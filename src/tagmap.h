@@ -105,6 +105,9 @@ size_t	tagmap_getl(size_t);
 size_t  tagmap_issetn(size_t, size_t);
 
 
+extern uint8_t *bitmap;
+
+
 #endif /* LIBDFT_TAGMAP_H */
 
 /* vim: set noet ts=8 sts=8 : */
