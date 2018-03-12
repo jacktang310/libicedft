@@ -91,6 +91,8 @@ tagmap_alloc(void)
 	// 					MAP_FLAGS,
 	// 					-1, 0)) == MAP_FAILED))
 	bitmap = dr_global_alloc(BITMAP_SZ);
+	memset(bitmap, 0, BITMAP_SZ);
+	
 	if (bitmap == NULL) {
 		/* return with failure */
 		return 1;

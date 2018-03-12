@@ -5,11 +5,6 @@
 #include <stdint.h>
 #include "libicedft_opcode.h"
 
-// add by menertry
-#include "dr_api.h"
-#include "dr_ir_instr.h"
-#include "dr_ir_instrlist.h"
-
 #define IDFT_REG_TYPE uint32_t 
 
 //the type represent number type which has the same length with vcpu register
@@ -46,10 +41,7 @@ typedef struct idft_ins
 
 	xed_iclass_enum_t ins_indx;
 
-  // modify by menertry
-  // void* ins_content;    // this is provided by Executer which use the dft engine
-  instr_t *instr;
-  instrlist_t *instrlist;
+  void* ins_content;    // this is provided by Executer which use the dft engine
 }  idft_ins_t;
 
 
