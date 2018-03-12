@@ -100,16 +100,15 @@ tagmap_alloc(void)
 						MAP_FLAGS,
 						-1, 0)) == MAP_FAILED))
 #else
-	if (unlikely(bitmap = dr_global_alloc(dr_get_current_drcontext(), BITMAP_SZ) == NULL))
-
+	if ( ( bitmap = dr_global_alloc(BITMAP_SZ) ) == NULL )
 #endif
-		// add by menertry
-		memset(bitmap, 0, BITMAP_SZ);
+	{
 		/* return with failure */
 		return 1;
 	}
 
-
+	// add by menertry
+	memset(bitmap, 0, BITMAP_SZ);
 	/* return with success */
 	return 0;
 }

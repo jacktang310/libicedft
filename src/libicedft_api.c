@@ -96,8 +96,11 @@ libdft_die(idft_context_t * context)
 	tagmap_free();
 
 	// modify by menertry
-    // free(context);
+#ifdef __GNUC__
+    free(context);
+#else
 	dr_global_free(context, sizeof(idft_context_t));
+#endif
 }
 
 

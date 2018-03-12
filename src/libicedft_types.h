@@ -41,10 +41,6 @@ typedef struct idft_ins
 	xed_iclass_enum_t ins_indx;
 
   void* ins_content;    // this is provided by Executer which use the dft engine
-<<<<<<< HEAD
-=======
-
->>>>>>> 5e27e0d98e56a8bbf58b86e2ef612c8e3d99298c
 }  idft_ins_t;
 
 
