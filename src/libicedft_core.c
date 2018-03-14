@@ -5247,8 +5247,9 @@ ins_inspect(idft_ins_t* ins , idft_context_t * context)
 			case XED_ICLASS_LEAVE:
 				/* extract the operands */
 				// modify by menertry
-				reg_dst = EXE->INS_OperandReg(ins, context,  3);
-				reg_src = EXE->INS_OperandReg(ins, context, 2);
+				// modified by jakc for support more general executor
+				reg_dst = EXE->REG_ESP(ins, context);
+				reg_src = EXE->REG_EBP(ins, context);
 
 				/* 32-bit operands */	
 				if (EXE->REG_is_gr32(ins, context, reg_dst)) {

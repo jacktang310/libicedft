@@ -316,6 +316,13 @@ typedef struct idft_executer_api
   //get executer eflags reg id
   f_0_t REG_EFLAGS;
 
+  //get executer ebp reg id
+  f_0_t REG_EBP;
+
+  //get executer esp reg id
+  f_0_t REG_ESP;
+
+
 }idft_executer_api_t;
 
 
